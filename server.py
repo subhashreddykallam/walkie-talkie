@@ -58,7 +58,8 @@ def send(username):
         for user in client:
             try:
                 message = "Call Disconnected"
-                client[username].send(toB(message))
+                message = message.encode('utf-8')
+                client[username].send(message)
             except:
                 pass
 

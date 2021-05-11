@@ -9,8 +9,8 @@ def toS(byte):
 class callingInterface:
     def __init__(self):
         self.client = socket.socket()
-        # self.HOST = "127.0.0.1"
-        self.HOST = "65.1.163.34"
+        self.HOST = "127.0.0.1"
+        # self.HOST = "65.1.163.34"
         self.PORT = 5000
         self.client.connect((self.HOST, self.PORT))
         self.p = pyaudio.PyAudio()
@@ -46,12 +46,12 @@ class callingInterface:
         miniDisplay.insert(tk.END, "Please wait, your call will begin...\n")
         message = self.client.recv(1024)
         message = toS(message)
-
+        print(message)
         miniDisplay.insert(tk.END, message)
         miniDisplay.insert(tk.END, '\n')
 
-        t1 = threading.Thread(target = sendStream)
-        t2 = threading.Thread(target = receiveStream, args = (miniDisplay, ))
+        t1 = threading.Thread(target = self.sendStream)
+        t2 = threading.Thread(target = self.receiveStream, args = (miniDisplay, ))
 
         t1.start()
         t2.start()
@@ -60,9 +60,9 @@ class callingInterface:
         t2.join()
 
     def endCall(self):
-        self.input_stream.stop()
+        self.input_stream.stop_stream()
         self.input_stream.close()
-        self.output_stream.stop()
+        self.output_stream.stop_stream()
         self.output_stream.close()
 
 caller = callingInterface()
@@ -157,6 +157,5 @@ class callPage(tk.Frame):
         def endCallBtn_clicked():
             caller.endCall()
             controller.show_frame(homePage)
-
 app = page()
 app.mainloop()
