@@ -2,61 +2,77 @@ import socket
 import threading
 import pyaudio
 import tkinter as tk
+from multiprocessing import Process
+
 
 def toS(byte):
     return byte.decode('utf-8')
 
+
 class callingInterface:
     def __init__(self):
         self.client = socket.socket()
-        self.HOST = "127.0.0.1"
-        # self.HOST = "65.1.163.34"
+        # self.HOST = "127.0.0.1"
+        self.HOST = "65.1.163.34"
         self.PORT = 5000
         self.client.connect((self.HOST, self.PORT))
         self.p = pyaudio.PyAudio()
 
-        self.input_stream = self.p.open(format = pyaudio.paInt16, channels = 1, rate = 44100, input = True, frames_per_buffer = 4096)
-        self.output_stream = self.p.open(format = pyaudio.paInt16, channels = 1, rate = 44100, output = True, frames_per_buffer = 4096)
+        self.input_stream = self.p.open(
+            format=pyaudio.paInt16, channels=1, rate=44100, input=True, frames_per_buffer=4096)
+        self.output_stream = self.p.open(
+            format=pyaudio.paInt16, channels=1, rate=44100, output=True, frames_per_buffer=4096)
+        
+        self.isSending = False
+        self.isRecieving = False
 
     def sendCreds(self, username, contact, mode):
         data = [username, contact, mode]
         data = ';'.join(data)
         self.client.send(bytes(data, 'utf-8'))
-    
+
     def sendStream(self):
-        while(True):
+        while(self.isSending):
             try:
                 data = self.input_stream.read(4096)
                 self.client.send(data)
             except:
                 break
+        return
 
     def receiveStream(self, miniDisplay):
-        while(True):
+        while(self.isRecieving):
             try:
+                print("Hello")
                 data = self.client.recv(4096)
-                miniDisplay.insert(tk.END, repr(data))
-                miniDisplay.insert(tk.END, '\n')
+                print("Hi")
                 self.output_stream.write(data)
             except:
                 break
+        return
 
     def startCall(self, miniDisplay):
         miniDisplay.insert(tk.END, "Credentials relayed to the server...\n")
-        miniDisplay.insert(tk.END, "Please wait, your call will begin...\n")
         message = self.client.recv(1024)
         message = toS(message)
         print(message)
         miniDisplay.insert(tk.END, message)
         miniDisplay.insert(tk.END, '\n')
+        miniDisplay.insert(tk.END, "Select mode...\n")
 
-        t1 = threading.Thread(target = self.sendStream)
-        t2 = threading.Thread(target = self.receiveStream, args = (miniDisplay, ))
-
+    def sendMode(self):
+        self.isRecieving = False
+        
+        self.isSending = True
+        t1 = threading.Thread(target=self.sendStream)
         t1.start()
-        t2.start()
-
         t1.join()
+
+    def recvMode(self, miniDisplay):
+        self.isSending = False
+        self.isRecieving = True
+        t2 = threading.Thread(target=self.receiveStream, args=(miniDisplay, ))
+        t2.start()
         t2.join()
 
     def endCall(self):
@@ -65,7 +81,9 @@ class callingInterface:
         self.output_stream.stop_stream()
         self.output_stream.close()
 
+
 caller = callingInterface()
+
 
 class page(tk.Tk):
 
@@ -74,7 +92,7 @@ class page(tk.Tk):
         tk.Tk.__init__(self, *args, **kwargs)
         container = tk.Frame(self)
 
-        container.pack(side="top", fill="both", expand = True)
+        container.pack(side="top", fill="both", expand=True)
 
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
@@ -96,10 +114,11 @@ class page(tk.Tk):
         frame = self.frames[cont]
         frame.tkraise()
 
+
 class homePage(tk.Frame):
 
     def __init__(self, parent, controller):
-        tk.Frame.__init__(self,parent)
+        tk.Frame.__init__(self, parent)
 
         label_username = tk.Label(self, text="Username")
         label_contact = tk.Label(self, text="Contact")
@@ -107,16 +126,18 @@ class homePage(tk.Frame):
         entry_username = tk.Entry(self)
         entry_contact = tk.Entry(self)
 
-        label_username.grid(row=1, column=0, padx=10,pady=10)
-        label_contact.grid(row=2, column=0, padx=10,pady=10)
-        entry_username.grid(row=1, column=1, padx=10,pady=10)
-        entry_contact.grid(row=2, column=1, padx=10,pady=10)
+        label_username.grid(row=1, column=0, padx=10, pady=10)
+        label_contact.grid(row=2, column=0, padx=10, pady=10)
+        entry_username.grid(row=1, column=1, padx=10, pady=10)
+        entry_contact.grid(row=2, column=1, padx=10, pady=10)
 
-        makeCallBtn = tk.Button(self, text="Make a call", width=10, background="white", foreground="Black",command=lambda: makeCallBtn_clicked())
-        makeCallBtn.grid(row=5, column=0, columnspan = 2, padx=10, pady=10)
+        makeCallBtn = tk.Button(self, text="Make a call", width=10, background="white",
+                                foreground="Black", command=lambda: makeCallBtn_clicked())
+        makeCallBtn.grid(row=5, column=0, columnspan=2, padx=10, pady=10)
 
-        connectCallBtn = tk.Button(self, text="Connect to call", width=10, background="white", foreground="Black",command=lambda: connectCallBtn_clicked())
-        connectCallBtn.grid(row=6, column=0, columnspan = 2, padx=10, pady=10)
+        connectCallBtn = tk.Button(self, text="Connect to call", width=10, background="white",
+                                   foreground="Black", command=lambda: connectCallBtn_clicked())
+        connectCallBtn.grid(row=6, column=0, columnspan=2, padx=10, pady=10)
 
         def makeCallBtn_clicked():
             username = entry_username.get()
@@ -130,32 +151,61 @@ class homePage(tk.Frame):
             caller.sendCreds(username, contact, "connect")
             controller.show_frame(callPage)
 
+
 class callPage(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
-        message_label=tk.Label(self,text="Status",font=("Arial,12"))
-        message_label.grid(row=1,column=0,columnspan=3,padx=10,pady=10,sticky="NSEW")
+        message_label = tk.Label(self, text="Status", font=("Arial,12"))
+        message_label.grid(row=1, column=0, columnspan=3,
+                           padx=10, pady=10, sticky="NSEW")
 
         scrollbar_y = tk.Scrollbar(self)
-        scrollbar_y.grid(row=4, column=3,rowspan=6)
+        scrollbar_y.grid(row=4, column=3, rowspan=6)
 
-        miniDisplay = tk.Text(self,height=8, width=35, yscrollcommand=scrollbar_y.set,
-                       bg="Grey",fg="White")
-        miniDisplay.grid(row=4, column=0,rowspan=3,columnspan=3,sticky="NSEW")
+        miniDisplay = tk.Text(self, height=8, width=35, yscrollcommand=scrollbar_y.set,
+                              bg="Grey", fg="White")
+        miniDisplay.grid(row=4, column=0, rowspan=3,
+                         columnspan=3, sticky="NSEW")
 
         # caller.startCall(miniDisplay)
-        startCallBtn = tk.Button(self,text="Start call",width = 10,command=lambda: startCallBtn_clicked())
-        startCallBtn.grid(row=14,column=0,padx=10,pady=10,sticky="nsew")
+        radio = tk.StringVar()
+        var = tk.StringVar()
 
-        endCallBtn = tk.Button(self,text="End call",width = 10, command=lambda: endCallBtn_clicked())
-        endCallBtn.grid(row=14,column=1,padx=10,pady=10,sticky="nsew")
-        
+        startCallBtn = tk.Button(self, text="Start call",
+                               width=10, command=lambda: startCallBtn_clicked())
+        startCallBtn.grid(row=14, column=0, columnspan=2,
+                        padx=10, pady=10, sticky="nsew")
+
+        sendMode = tk.Radiobutton(
+            self, text="Send Mode", value="Send", variable=radio, command=lambda: modeSelect())
+        recvMode = tk.Radiobutton(
+            self, text="Receive Mode", value="Recieve", variable=radio, command=lambda: modeSelect())
+
+        sendMode.grid(row=15, column=0,padx=10, pady=10, sticky="nsew")
+        recvMode.grid(row=15, column=1, padx=10, pady=10, sticky="nsew")
+
+        endCallBtn = tk.Button(self, text="End call",
+                               width=10, command=lambda: endCallBtn_clicked())
+        endCallBtn.grid(row=16, column=0, columnspan=2,
+                        padx=10, pady=10, sticky="nsew")
+
+        def modeSelect():
+            if str(radio.get()) == "Send":
+                miniDisplay.insert(tk.END, "You are sending...\n")
+                caller.sendMode()
+            else:
+                miniDisplay.insert(tk.END, "You are receiving...\n")
+                caller.recvMode(miniDisplay)
+
         def startCallBtn_clicked():
             caller.startCall(miniDisplay)
+
         def endCallBtn_clicked():
             caller.endCall()
             controller.show_frame(homePage)
+
+
 app = page()
 app.mainloop()

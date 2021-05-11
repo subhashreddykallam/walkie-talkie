@@ -52,8 +52,11 @@ def start():
 def send(username):
     try:
         while(True):
+            print(username + "sending to " + speakingTo[username])
             data = client[username].recv(4096)
+            print("recieved from " + username)
             client[speakinTo[username]].send(data)
+            print("sent to " + speakingTo[username])
     except:
         for user in client:
             try:
