@@ -145,8 +145,10 @@ class callPage(tk.Frame):
         miniDisplay.grid(row=4, column=0,rowspan=3,columnspan=3,sticky="NSEW")
 
         # caller.startCall(miniDisplay)
+        startCallBtn = tk.Button(self,text="Start call",width = 10,command=lambda: startCallBtn_clicked())
+        startCallBtn.grid(row=14,column=0,padx=10,pady=10,sticky="nsew")
 
-        endCallBtn = tk.Button(self,text="End call",command=lambda: endCallBtn_clicked())
+        endCallBtn = tk.Button(self,text="End call",width = 10, command=lambda: endCallBtn_clicked())
         endCallBtn.grid(row=14,column=1,padx=10,pady=10,sticky="nsew")
         
         def endCallBtn_clicked():

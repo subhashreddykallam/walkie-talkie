@@ -43,6 +43,7 @@ def start():
                 offers.pop(contact)
                 message = "Your call has been connected successfully"
         print(message)
+        message = bytes(message, 'utf-8')
         client[username].send(message)
 
         t = threading.Thread(target = send, args = (username, ))
