@@ -9,7 +9,8 @@ def toS(byte):
 class callingInterface:
     def __init__(self):
         self.client = socket.socket()
-        self.HOST = "127.0.0.1"
+        # self.HOST = "127.0.0.1"
+        self.HOST = "65.1.163.34"
         self.PORT = 5000
         self.client.connect((self.HOST, self.PORT))
         self.p = pyaudio.PyAudio()
@@ -151,7 +152,10 @@ class callPage(tk.Frame):
         endCallBtn = tk.Button(self,text="End call",width = 10, command=lambda: endCallBtn_clicked())
         endCallBtn.grid(row=14,column=1,padx=10,pady=10,sticky="nsew")
         
+        def startCallBtn_clicked():
+            caller.startCall(miniDisplay)
         def endCallBtn_clicked():
+            caller.endCall()
             controller.show_frame(homePage)
 
 app = page()
