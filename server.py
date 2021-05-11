@@ -27,6 +27,7 @@ def start():
         if mode == "make":
             if contact in offers:
                 message = "User is in another call"
+                client[username] = conn
             else:
                 offers[username] = contact
                 client[username] = conn
@@ -35,8 +36,10 @@ def start():
         else:
             if contact not in offers:
                 message = "User you are looking for is not online"
+                client[username] = conn
             elif offers[contact] != username:
                 message = "User is on another call"
+                client[username] = conn
             else:
                 client[username] = conn
                 speakingTo[username] = contact
@@ -50,9 +53,10 @@ def start():
         t.start()
 
 def send(username):
+    print(client, speakingTo, offers, sep = "\n")
     try:
         while(True):
-            print(username + "sending to " + speakingTo[username])
+            print(username + " sending to " + speakingTo[username])
             data = client[username].recv(4096)
             print("recieved from " + username)
             client[speakinTo[username]].send(data)
