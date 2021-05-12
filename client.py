@@ -11,9 +11,9 @@ def toS(byte):
 
 class callingInterface:
     def __init__(self):
-        self.client = socket.socket()
-        self.HOST = "127.0.0.1"
-        # self.HOST = "65.1.163.34"
+        self.client = socket.socket(socket.AF_INET, socket.DGRAM)
+        # self.HOST = "127.0.0.1"
+        self.HOST = "65.1.163.34"
         self.PORT = 5000
         self.client.connect((self.HOST, self.PORT))
         self.p = pyaudio.PyAudio()
@@ -22,9 +22,6 @@ class callingInterface:
             format=pyaudio.paInt16, channels=1, rate=44100, input=True, frames_per_buffer=4096)
         self.output_stream = self.p.open(
             format=pyaudio.paInt16, channels=1, rate=44100, output=True, frames_per_buffer=4096)
-        
-        self.isSending = False
-        self.isRecieving = False
 
     def sendCreds(self, username, contact, mode):
         data = [username, contact, mode]
@@ -32,8 +29,9 @@ class callingInterface:
         self.client.send(bytes(data, 'utf-8'))
 
     def sendStream(self):
-        while(self.isSending):
+        while(True):
             try:
+                print("sending")
                 data = self.input_stream.read(4096)
                 self.client.send(data)
             except:
@@ -41,11 +39,9 @@ class callingInterface:
         return
 
     def receiveStream(self, miniDisplay):
-        while(self.isRecieving):
+        while(True):
             try:
-                print("Hello")
                 data = self.client.recv(4096)
-                print("Hi")
                 self.output_stream.write(data)
             except:
                 break
@@ -60,20 +56,14 @@ class callingInterface:
         miniDisplay.insert(tk.END, '\n')
         miniDisplay.insert(tk.END, "Select mode...\n")
 
-    def sendMode(self):
-        self.isRecieving = False
-        
-        self.isSending = True
         t1 = threading.Thread(target=self.sendStream)
-        t1.start()
-        t1.join()
-
-    def recvMode(self, miniDisplay):
-        self.isSending = False
-        self.isRecieving = True
         t2 = threading.Thread(target=self.receiveStream, args=(miniDisplay, ))
-        t2.start()
-        t2.join()
+
+        t1.start()
+        # t2.start()
+
+        t1.join()
+        # t2.join()
 
     def endCall(self):
         self.input_stream.stop_stream()
