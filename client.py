@@ -12,8 +12,8 @@ def toS(byte):
 class callingInterface:
     def __init__(self):
         self.client = socket.socket()
-        # self.HOST = "127.0.0.1"
-        self.HOST = "65.1.163.34"
+        self.HOST = "127.0.0.1"
+        # self.HOST = "65.1.163.34"
         self.PORT = 5000
         self.client.connect((self.HOST, self.PORT))
         self.p = pyaudio.PyAudio()
@@ -170,38 +170,14 @@ class callPage(tk.Frame):
                          columnspan=3, sticky="NSEW")
 
         # caller.startCall(miniDisplay)
-        radio = tk.StringVar()
-        var = tk.StringVar()
+        startCallBtn = tk.Button(self,text="Start call",width = 10,command=lambda: startCallBtn_clicked())
+        startCallBtn.grid(row=14,column=0,padx=10,pady=10,sticky="nsew")
 
-        startCallBtn = tk.Button(self, text="Start call",
-                               width=10, command=lambda: startCallBtn_clicked())
-        startCallBtn.grid(row=14, column=0, columnspan=2,
-                        padx=10, pady=10, sticky="nsew")
-
-        sendMode = tk.Radiobutton(
-            self, text="Send Mode", value="Send", variable=radio, command=lambda: modeSelect())
-        recvMode = tk.Radiobutton(
-            self, text="Receive Mode", value="Recieve", variable=radio, command=lambda: modeSelect())
-
-        sendMode.grid(row=15, column=0,padx=10, pady=10, sticky="nsew")
-        recvMode.grid(row=15, column=1, padx=10, pady=10, sticky="nsew")
-
-        endCallBtn = tk.Button(self, text="End call",
-                               width=10, command=lambda: endCallBtn_clicked())
-        endCallBtn.grid(row=16, column=0, columnspan=2,
-                        padx=10, pady=10, sticky="nsew")
-
-        def modeSelect():
-            if str(radio.get()) == "Send":
-                miniDisplay.insert(tk.END, "You are sending...\n")
-                caller.sendMode()
-            else:
-                miniDisplay.insert(tk.END, "You are receiving...\n")
-                caller.recvMode(miniDisplay)
-
+        endCallBtn = tk.Button(self,text="End call",width = 10, command=lambda: endCallBtn_clicked())
+        endCallBtn.grid(row=14,column=1,padx=10,pady=10,sticky="nsew")
+        
         def startCallBtn_clicked():
             caller.startCall(miniDisplay)
-
         def endCallBtn_clicked():
             caller.endCall()
             controller.show_frame(homePage)

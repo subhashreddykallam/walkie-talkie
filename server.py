@@ -13,7 +13,7 @@ server.listen(5)
 offers = {}
 client = {}
 speakingTo = {}
-
+cl = []
 def toS(byte):
     return byte.decode('utf-8')
 
@@ -49,25 +49,18 @@ def start():
         message = message.encode('utf-8')
         client[username].send(message)
 
-        t = threading.Thread(target = send, args = (username, ))
+        cl.append(conn)
+        t = threading.Thread(target = send, args = (conn, ))
         t.start()
 
-def send(username):
-    print(client, speakingTo, offers, sep = "\n")
+def send(fromConnection):
     try:
         while(True):
-            print(username + " sending to " + speakingTo[username])
-            data = client[username].recv(4096)
-            print("recieved from " + username)
-            client[speakinTo[username]].send(data)
-            print("sent to " + speakingTo[username])
+            data = fromConnection.recv(4096)
+            for cl in client:
+                if cl != fromConnection:
+                    cl.send(data)
     except:
-        for user in client:
-            try:
-                message = "Call Disconnected"
-                message = message.encode('utf-8')
-                client[username].send(message)
-            except:
-                pass
+        print("Client Disconnected")
 
 start()
