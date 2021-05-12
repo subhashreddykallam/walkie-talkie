@@ -11,7 +11,7 @@ def toS(byte):
 
 class callingInterface:
     def __init__(self):
-        self.client = socket.socket(socket.AF_INET, socket.DGRAM)
+        self.client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         # self.HOST = "127.0.0.1"
         self.HOST = "65.1.163.34"
         self.PORT = 5000
