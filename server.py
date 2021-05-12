@@ -1,10 +1,10 @@
 import socket
 import threading
 
-PORT = 5000
+PORT = 3000
 HOST = "0.0.0.0"
 
-server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 server.bind((HOST, PORT))
 
@@ -18,7 +18,7 @@ def toS(byte):
     return byte.decode('utf-8')
 
 def start():
-    while(True):
+    for i in range(2):
         conn, addr = server.accept()
         print(conn, addr)
         creds = conn.recv(1024)
@@ -52,14 +52,17 @@ def start():
         cl.append(conn)
         t = threading.Thread(target = send, args = (conn, ))
         t.start()
+        t.join()
 
 def send(fromConnection):
     try:
         while(True):
             data = fromConnection.recv(4096)
+            print("recv from ", fromConnection)
             for cl in client:
                 if cl != fromConnection:
                     cl.send(data)
+                    print("sent to", cl)
     except:
         print("Client Disconnected")
 

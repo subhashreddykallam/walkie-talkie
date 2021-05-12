@@ -11,7 +11,7 @@ def toS(byte):
 
 class callingInterface:
     def __init__(self):
-        self.client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # self.HOST = "127.0.0.1"
         self.HOST = "65.1.163.34"
         self.PORT = 5000
@@ -41,6 +41,7 @@ class callingInterface:
     def receiveStream(self, miniDisplay):
         while(True):
             try:
+                print("receiving")
                 data = self.client.recv(4096)
                 self.output_stream.write(data)
             except:
@@ -60,10 +61,10 @@ class callingInterface:
         t2 = threading.Thread(target=self.receiveStream, args=(miniDisplay, ))
 
         t1.start()
-        # t2.start()
+        t2.start()
 
         t1.join()
-        # t2.join()
+        t2.join()
 
     def endCall(self):
         self.input_stream.stop_stream()
